@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Post
+from .models import Post, Tag
 from .models import Comment
 
 class RegisterForm(UserCreationForm):
@@ -13,6 +13,16 @@ class RegisterForm(UserCreationForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple
+    )
+
+    class Meta:
+        model = Post
+        fields = ["title", "content", "tags"]
+
     class Meta:
         model = User
         fields = ["username", "email"]

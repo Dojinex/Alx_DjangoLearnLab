@@ -37,3 +37,10 @@
 
 {% endblock %}
 
+<p>Tags:
+{% for tag in object.tags.all %}
+    <a href="{% url 'tag-posts' tag.name %}">{{ tag.name }}</a>
+{% empty %}
+    No tags
+{% endfor %}
+</p>
