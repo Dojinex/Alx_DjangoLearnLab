@@ -129,4 +129,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #Tell Django to use custom user
 AUTH_USER_MODEL = 'accounts.User'
 
-
+# Configure Token Authentication
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
