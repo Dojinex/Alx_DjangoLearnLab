@@ -42,6 +42,8 @@ INSTALLED_APPS = [
 #Register account and rest_framework
     'accounts',
     'rest_framework',
+    'rest_framework.authtoken',
+    'posts',
 ]
 
 MIDDLEWARE = [
