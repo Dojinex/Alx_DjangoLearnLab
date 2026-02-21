@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .models import User
-
+from .models import User as CustomUser
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 
 # Register views
@@ -44,27 +44,32 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def follow_user(request, user_id):
-    user_to_follow = get_object_or_404(User, id=user_id)
+class FollowUserView(generics.GenericAPIView):
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated]
 
-    if request.user == user_to_follow:
-        return Response({"error": "You cannot follow yourself"}, status=400)
+    def post(self, request, user_id):
+        user_to_follow = self.get_queryset().filter(id=user_id).first()
 
-    request.user.following.add(user_to_follow)
+        if not user_to_follow:
+            return Response({"error": "User not found"}, status=404)
 
-    return Response({"message": "User followed successfully"})
+        if request.user == user_to_follow:
+            return Response({"error": "You cannot follow yourself"}, status=400)
+
+        request.user.following.add(user_to_follow)
+        return Response({"message": "User followed successfully"})
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def follow_user(request, user_id):
-    user_to_follow = get_object_or_404(User, id=user_id)
+class UnfollowUserView(generics.GenericAPIView):
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated]
 
-    if request.user == user_to_follow:
-        return Response({"error": "You cannot follow yourself"}, status=400)
+    def post(self, request, user_id):
+        user_to_unfollow = self.get_queryset().filter(id=user_id).first()
 
-    request.user.following.add(user_to_follow)
+        if not user_to_unfollow:
+            return Response({"error": "User not found"}, status=404)
 
-    return Response({"message": "User followed successfully"})
+        request.user.following.remove(user_to_unfollow)
+        return Response({"message": "User unfollowed successfully"})
