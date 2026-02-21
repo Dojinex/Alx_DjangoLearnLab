@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions, generics
 from rest_framework.response import Response
-from .models import Post, Comment, like
+from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
 from rest_framework import status
 from django.shortcuts import get_object_or_404
