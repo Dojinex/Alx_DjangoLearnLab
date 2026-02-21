@@ -1,8 +1,10 @@
 from rest_framework import viewsets, permissions, generics
 from rest_framework.response import Response
-from .models import Post, Comment
+from .models import Post, Comment, like
 from .serializers import PostSerializer, CommentSerializer
-
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from notifications.models import Notification
 
 # -------------------------
 # Custom permission: Only owner can edit/delete
@@ -62,3 +64,40 @@ class FeedView(generics.GenericAPIView):
 
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
+
+class LikePostView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+
+        # Prevent multiple likes
+        if post.likes.filter(user=request.user).exists():
+            return Response({"detail": "Already liked"}, status=status.HTTP_400_BAD_REQUEST)
+
+        Like.objects.create(user=request.user, post=post)
+
+        # Create notification for post author
+        if post.author != request.user:
+            Notification.objects.create(
+                recipient=post.author,
+                actor=request.user,
+                verb="liked your post",
+                target=post
+            )
+
+        return Response({"detail": "Post liked"}, status=status.HTTP_201_CREATED)
+
+
+class UnlikePostView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        like = post.likes.filter(user=request.user).first()
+
+        if not like:
+            return Response({"detail": "You have not liked this post"}, status=status.HTTP_400_BAD_REQUEST)
+
+        like.delete()
+        return Response({"detail": "Post unliked"}, status=status.HTTP_200_OK)
